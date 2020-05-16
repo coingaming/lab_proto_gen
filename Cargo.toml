@@ -1,0 +1,9 @@
+[package]
+name = "lab_proto_gen"
+version = "0.1.0"
+authors = ["Reio Piller <reio@heathmont.net>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
