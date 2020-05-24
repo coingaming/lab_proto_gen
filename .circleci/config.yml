@@ -1,13 +1,35 @@
-version: 2
+version: 2.1
+
+commands:
+  setup_robot_ssh_key:
+    steps:
+      - run:
+          name: Setup robot SSH key
+          command: |
+            echo "$ROBOT_SSH_KEY" | base64 -d > $HOME/.ssh/id_rsa.robot && chmod 600 $HOME/.ssh/id_rsa.robot && ssh-add $HOME/.ssh/id_rsa.robot
+            echo -e "Host *\n IdentityFile $HOME/.ssh/id_rsa.robot\n IdentitiesOnly yes" > $HOME/.ssh/config
+
+  checkout_git_submodules:
+    steps:
+      - run:
+          name: Checkout git submodules
+          command: git submodule update --init --recursive
+  build:
+    steps:
+      - run:
+          name: Build
+          command: cargo build --release
+
 jobs:
   build:
     docker:
     - image: rust:1.43.1-alpine3.11
     steps:
     - checkout
-    - run:
-        name: Build
-        command: cargo build --release
+    - setup_robot_ssh_key
+    - checkout_git_submodules
+    - build
+
 
 workflows:
   version: 2
