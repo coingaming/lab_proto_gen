@@ -6,7 +6,7 @@ commands:
       - run:
           name: Alpine deps
           command: |
-            which ssh-agent || ( apk --update add openssh-client )
+            apk --update add bash git openssh-client
       - run:
           name: Setup robot SSH key
           command: |
