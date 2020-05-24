@@ -3,10 +3,10 @@ version: 2.1
 commands:
   setup:
     steps:
-      - run:
-          name: Alpine deps
-          command: |
-            apk --update add bash git openssh-client
+      # - run:
+      #     name: Alpine deps
+      #     command: |
+      #       apk --update add bash git openssh-client
       - run:
           name: Setup robot SSH key
           command: |
@@ -32,7 +32,8 @@ commands:
 jobs:
   build:
     docker:
-    - image: rust:1.43.1-alpine3.11
+    # - image: rust:1.43.1-alpine3.11
+    - image: rust:1
     steps:
     - checkout
     - setup
