@@ -14,7 +14,7 @@ commands:
             echo "$ROBOT_SSH_KEY" | base64 -d > $HOME/.ssh/id_rsa.robot && chmod 600 $HOME/.ssh/id_rsa.robot && ssh-add $HOME/.ssh/id_rsa.robot
             echo -e "Host *\n IdentityFile $HOME/.ssh/id_rsa.robot\n IdentitiesOnly yes" > $HOME/.ssh/config
       - run:
-          name: Github known hosts
+          name: Github to known hosts
           command: |
             ssh-keyscan github.com >> $HOME/.ssh/known_hosts
 
@@ -27,7 +27,7 @@ commands:
     steps:
       - run:
           name: Build
-          command: cargo build --release
+          command: RUSTFLAGS="-C target-feature=-crt-static" cargo build --release
 
 jobs:
   build:
