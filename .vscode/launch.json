@@ -1,0 +1,64 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'lab_proto_gen'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--lib",
+          "--package=lab_proto_gen"
+        ],
+        "filter": {
+          "name": "lab_proto_gen",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'lab_proto_gen'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=lab_proto_gen",
+          "--package=lab_proto_gen"
+        ],
+        "filter": {
+          "name": "lab_proto_gen",
+          "kind": "bin"
+        }
+      },
+      "args": ["test.proto", "lab_protobuf/substance", "coingaming_protobuf/substance"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'lab_proto_gen'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--bin=lab_proto_gen",
+          "--package=lab_proto_gen"
+        ],
+        "filter": {
+          "name": "lab_proto_gen",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

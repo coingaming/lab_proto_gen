@@ -1,0 +1,17 @@
+version: 2
+jobs:
+  build:
+    docker:
+    - image: rust:1.43.1-alpine3.11
+    steps:
+    - checkout
+    - run:
+        name: Build
+        command: cargo build --release
+
+workflows:
+  version: 2
+  validate:
+    jobs:
+      - build:
+          context: global
