@@ -4,12 +4,9 @@ commands:
   setup:
     steps:
       - run:
-          name: Setup robot SSH key
+          name: Alpine deps
           command: |
             which ssh-agent || ( apk --update add openssh-client )
-
-  setup_robot_ssh_key:
-    steps:
       - run:
           name: Setup robot SSH key
           command: |
@@ -34,7 +31,7 @@ jobs:
     - image: rust:1.43.1-alpine3.11
     steps:
     - checkout
-    - setup_robot_ssh_key
+    - setup
     - checkout_git_submodules
     - build
 
