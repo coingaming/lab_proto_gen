@@ -27,7 +27,7 @@ commands:
     steps:
       - run:
           name: Build
-          command: RUSTFLAGS="-C target-feature=-crt-static" cargo build --release
+          command: cargo build --release
 
 jobs:
   build:
