@@ -1,6 +1,13 @@
 version: 2.1
 
 commands:
+  setup:
+    steps:
+      - run:
+          name: Setup robot SSH key
+          command: |
+            which ssh-agent || ( apk --update add openssh-client )
+
   setup_robot_ssh_key:
     steps:
       - run:
