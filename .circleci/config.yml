@@ -6,6 +6,7 @@ commands:
       - run:
           name: Setup robot SSH key
           command: |
+            mkdir -p -m 700 /root/.ssh
             echo "$ROBOT_SSH_KEY" | base64 -d > $HOME/.ssh/id_rsa.robot && chmod 600 $HOME/.ssh/id_rsa.robot && ssh-add $HOME/.ssh/id_rsa.robot
             echo -e "Host *\n IdentityFile $HOME/.ssh/id_rsa.robot\n IdentitiesOnly yes" > $HOME/.ssh/config
 
@@ -33,7 +34,7 @@ jobs:
 
 workflows:
   version: 2
-  validate:
+  build:
     jobs:
       - build:
           context: global
