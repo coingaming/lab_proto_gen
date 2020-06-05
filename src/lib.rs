@@ -1,46 +1,66 @@
-mod extender;
-mod gen;
-mod parser;
-
-use std::path::PathBuf;
-use std::fs::{self, File};
+use protobuf_gen::ProtobufString;
+use glob::glob;
+use itertools::Itertools;
+use inflector::Inflector;
+use std::fs::File;
 use std::io::prelude::*;
-use clap::Clap;
-use extender::*;
-use gen::ProtoGen;
-
-#[derive(Clap, Debug)]
-#[clap(name = "Lab protobuf generator and extender")]
-pub struct Config {
-    #[clap(short, parse(from_os_str))]
-    pub file: PathBuf,
-    #[clap(short, arg_enum, default_value = "deprecate")]
-    pub absent_field_action: extender::AbsentFieldAction,
-    #[clap(name = "DIR", parse(from_os_str), required = true, min_values = 2)]
-    pub subs_dir: Vec<PathBuf>
-}
 
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
-    let config = Config::parse();
+    let files: Vec<_> = glob("*_protobuf/substance/*/*/*.proto").unwrap().map(Result::unwrap).collect();
 
-    // parse proto based on the proto roots dir structure
-    let new_proto = parser::proto_from_fs(&config.subs_dir)?;
+    for (dir, files) in files.into_iter().group_by(|f| f.parent().unwrap().parent().unwrap().to_owned()).into_iter() {
+        let substance = dir.file_name().unwrap().to_str().unwrap().to_string();
+        let substance_pascal = substance.to_pascal_case();
+        let mut imports = Vec::new();
+        let mut services = Vec::new();
 
-    // read existing proto from file and extend it with new proto while staying backward compatible
-    let proto = if let Ok(old_proto_str) = fs::read_to_string(&config.file) {
-        let mut old_proto = protobuf_parser::FileDescriptor::parse(old_proto_str)
-            .expect("failed to parse existing protobuf");
-        old_proto.extend(&new_proto, config.absent_field_action, None);
-        old_proto
-    } else {
-        new_proto
-    };
+        for (act_type, files) in files.into_iter() .group_by(|f| f.parent().unwrap().file_name().unwrap().to_str().unwrap().to_string()).into_iter() {
+            let act_type_pascal = act_type.to_pascal_case();
+            let mut methods = Vec::new();
 
-    // generate proto syntax and save to file
-    let mut out = String::new();
-    proto.emit_proto(&mut out, 0);
-    let mut file = File::create(&config.file)?;
-    file.write_all(out.as_bytes())?;
+            for file in files {
+                let act = file.file_stem().unwrap().to_str().unwrap().to_string();
+                let file = file.to_str().unwrap().to_string();
+                let act_pascal = act.to_pascal_case();
+                imports.push(file);
+                methods.push(prost_types::MethodDescriptorProto{
+                    name: Some(act),
+                    input_type: Some(format!(".Lab.Substance.{}.{}.{}.Request", substance_pascal, act_type_pascal, act_pascal).to_string()),
+                    output_type: Some(format!(".Lab.Substance.{}.{}.{}.Response", substance_pascal, act_type_pascal, act_pascal).to_string()),
+                    ..Default::default()
+                });
+            }
+
+            services.push(prost_types::ServiceDescriptorProto{
+                name: Some(act_type.to_pascal_case()),
+                method: methods,
+                ..Default::default()
+            });
+        }
+
+        let fd = prost_types::FileDescriptorProto{
+            name: Some(substance.clone()),
+            syntax: Some("proto3".to_string()),
+            package: Some(format!("Lab.Substance.{}", substance_pascal)),
+            dependency: imports,
+            message_type: Vec::new(),
+            service: services,
+            ..Default::default()
+        };
+
+        let mut file = File::create(format!("{}.proto", dir.to_str().unwrap()))?;
+        file.write_all(fd.to_protobuf(fd.to_owned()).as_bytes())?;
+    }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod test {
+
+    #[test]
+    fn it_works() -> Result <(), Box<dyn std::error::Error>>{
+        super::run()
+    }
+
 }
