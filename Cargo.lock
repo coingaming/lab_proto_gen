@@ -264,7 +264,7 @@ dependencies = [
 [[package]]
 name = "protobuf-gen"
 version = "0.1.0"
-source = "git+ssh://git@github.com/coingaming/protobuf-gen#1c72979f5e228775f84f6b4eabe37e97f5f875d1"
+source = "git+ssh://git@github.com/coingaming/protobuf-gen#5584bf2c8b82e5ac4f5cc777db0e18737ec289c9"
 dependencies = [
  "prost",
  "prost-types",

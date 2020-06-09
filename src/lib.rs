@@ -20,6 +20,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
         let substance_pascal = substance.to_pascal_case();
         let mut imports = Vec::new();
         let mut services = Vec::new();
+        let mut messages = Vec::new();
 
         for (act_type, files) in files
             .into_iter()
@@ -41,11 +42,36 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
                 let act = file.file_stem().unwrap().to_str().unwrap().to_string();
                 let file = file.to_str().unwrap().to_string();
                 let act_pascal = act.to_pascal_case();
-                let input_type = format!(
+                let request_type = format!(
                     ".Lab.Substance.{}.{}.{}.Request",
                     substance_pascal, act_type_pascal, act_pascal
                 )
                 .to_string();
+
+                let input_type = format!(
+                    ".Lab.Substance.Service.{}.{}.{}.Request",
+                    substance_pascal, act_type_pascal, act_pascal
+                );
+
+                let message = prost_types::DescriptorProto {
+                    name: Some(input_type.clone()),
+                    field: vec![
+                        prost_types::FieldDescriptorProto {
+                            type_name: Some(request_type),
+                            name: Some("request".to_string()),
+                            number: Some(1),
+                            ..Default::default()
+                        },
+                        prost_types::FieldDescriptorProto {
+                            type_name: Some(".Lab.Global.Context".to_string()),
+                            name: Some("context".to_string()),
+                            number: Some(2),
+                            ..Default::default()
+                        },
+                    ],
+                    ..Default::default()
+                };
+                messages.push(message);
 
                 let output_type = if act_type == "observation" {
                     imports.push("lab_protobuf/global/shared_observation.proto".to_string());
@@ -82,7 +108,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             syntax: Some("proto3".to_string()),
             package: Some(format!("Lab.Substance.Service.{}", substance_pascal)),
             dependency: imports,
-            message_type: Vec::new(),
+            message_type: messages,
             service: services,
             ..Default::default()
         };
