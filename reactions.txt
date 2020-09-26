@@ -1,0 +1,18 @@
+# lab
+message UserAuth {
+	oneof {
+		token
+		user_id
+	}
+}
+
+# auth
+reaction/send_mobile_code (mobile_nr)
+reaction/register_with_mobile (mobile_nr, mobile_code, pin)
+reaction/login_with_mobile (mobile_nr, mobile_code, pin)
+reaction/change_mobile_nr (user_auth, pin, mobile_nr, mobile_code)
+reaction/change_pin (user_auth, old_pin, pin)
+
+# ledger
+element/transaction (oneof reference to fields/filter)
+
