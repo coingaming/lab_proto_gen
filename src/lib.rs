@@ -45,8 +45,10 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             )
             .to_string();
 
+            let input_type = format!("{}Request", act_pascal.clone());
+
             let message = prost_types::DescriptorProto {
-                name: Some(act_pascal.clone()),
+                name: Some(input_type.clone()),
                 field: vec![
                     prost_types::FieldDescriptorProto {
                         type_name: Some(".Lab.Global.Context".to_string()),
@@ -66,12 +68,8 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             messages.push(message);
 
             let output_type = if act_type == "observation" {
-                imports.push(PathBuf::from(
-                    "lab_protobuf/global/shared_observation.proto",
-                ));
                 ".Lab.Global.SharedObservation.Response".to_string()
             } else if act_type == "effect" {
-                imports.push(PathBuf::from("lab_protobuf/global/shared_effect.proto"));
                 ".Lab.Global.SharedEffect.Response".to_string()
             } else {
                 format!(
@@ -82,8 +80,8 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             };
 
             methods.push(prost_types::MethodDescriptorProto {
-                name: Some(act),
-                input_type: Some(act_pascal),
+                name: Some(act_pascal.clone()),
+                input_type: Some(input_type),
                 output_type: Some(output_type),
                 server_streaming: Some(false),
                 ..Default::default()
@@ -91,6 +89,14 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         imports.push(PathBuf::from("lab_protobuf/global/context.proto"));
+
+        if act_type == "observation" {
+            imports.push(PathBuf::from(
+                "lab_protobuf/global/shared_observation.proto",
+            ));
+        } else if act_type == "effect" {
+            imports.push(PathBuf::from("lab_protobuf/global/shared_effect.proto"));
+        };
 
         services.push(prost_types::ServiceDescriptorProto {
             name: Some("Service".to_string()),
@@ -101,10 +107,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
         let fd = prost_types::FileDescriptorProto {
             // name: Some(substance.clone()),
             syntax: Some("proto3".to_string()),
-            package: Some(format!(
-                "Lab.Substance.Service.{}.{}",
-                substance_pascal, act_type_pascal
-            )),
+            package: Some(format!("Lab.Rpc.{}.{}", substance_pascal, act_type_pascal)),
             dependency: imports
                 .iter()
                 .map(|x| x.to_str().unwrap().to_string())
