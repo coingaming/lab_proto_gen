@@ -83,7 +83,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
                 name: Some(act_pascal.clone()),
                 input_type: Some(input_type),
                 output_type: Some(output_type),
-                server_streaming: Some(false),
+                server_streaming: Some(act_type == "observation"),
                 ..Default::default()
             });
         }
