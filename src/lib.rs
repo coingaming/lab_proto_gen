@@ -31,6 +31,19 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
 
         let substance_pascal = substance.to_pascal_case();
 
+        let proto_dir = dir
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_string();
+
         let mut imports: Vec<_> = files.collect();
         let mut services = Vec::with_capacity(1);
         let mut messages = Vec::with_capacity(imports.len());
@@ -44,6 +57,13 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
                 substance_pascal, act_type_pascal, act_pascal
             )
             .to_string();
+
+            if act_type == "observation" {
+                imports.push(PathBuf::from(format!(
+                    "{}/substance/{}/effect/{}.proto",
+                    proto_dir, substance, act
+                )));
+            }
 
             let input_type = format!("{}Request", act_pascal.clone());
 
@@ -68,7 +88,11 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             messages.push(message);
 
             let output_type = if act_type == "observation" {
-                ".Lab.Global.SharedObservation.Response".to_string()
+                format!(
+                    ".Lab.Substance.{}.Effect.{}.Request",
+                    substance_pascal, act_pascal
+                )
+                .to_string()
             } else if act_type == "effect" {
                 ".Lab.Global.SharedEffect.Response".to_string()
             } else {
@@ -90,11 +114,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
 
         imports.push(PathBuf::from("lab_protobuf/global/context.proto"));
 
-        if act_type == "observation" {
-            imports.push(PathBuf::from(
-                "lab_protobuf/global/shared_observation.proto",
-            ));
-        } else if act_type == "effect" {
+        if act_type == "effect" {
             imports.push(PathBuf::from("lab_protobuf/global/shared_effect.proto"));
         };
 
