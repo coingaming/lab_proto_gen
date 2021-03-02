@@ -1,50 +1,61 @@
 version: 2.1
 
-commands:
-  setup:
-    steps:
-      # - run:
-      #     name: Alpine deps
-      #     command: |
-      #       apk --update add bash git openssh-client
-      - run:
-          name: Setup robot SSH key
-          command: |
-            mkdir -p -m 700 $HOME/.ssh
-            echo "$ROBOT_SSH_KEY" | base64 -d > $HOME/.ssh/id_rsa.robot && chmod 600 $HOME/.ssh/id_rsa.robot && ssh-add $HOME/.ssh/id_rsa.robot
-            echo -e "Host *\n IdentityFile $HOME/.ssh/id_rsa.robot\n IdentitiesOnly yes" > $HOME/.ssh/config
-      - run:
-          name: Github to known hosts
-          command: |
-            ssh-keyscan github.com >> $HOME/.ssh/known_hosts
+configure: &configure
+  docker:
+  - image: nixos/nix:2.3
+  resource_class: xlarge
 
-  checkout_git_submodules:
+release: &release
+  run:
+    name: Create release
+    command: ./nix/release.sh
+    no_output_timeout: 60m
+
+filters: &filters
+  filters:
+    branches: {}
+
+commands:
+  restore_nix_cache:
     steps:
-      - run:
-          name: Checkout git submodules
-          command: git submodule update --init --recursive
-  build:
+      - restore_cache:
+          keys:
+            - v0-nix-<< pipeline.git.revision >>
+            - v0-nix-<< pipeline.git.base_revision >>
+            - v0-nix-
+  save_nix_cache:
     steps:
-      - run:
-          name: Build
-          # command: RUSTFLAGS="-C target-feature=-crt-static" cargo build --release
-          command: cargo build --release
+      - save_cache:
+          key: v0-nix-<< pipeline.git.revision >>
+          paths:
+            - /nix
+      - save_cache:
+          key: v0-nix-
+          paths:
+            - /nix
 
 jobs:
-  build:
-    docker:
-    # - image: rust:1.43.1-alpine3.11
-    - image: rust:1
+  release:
+    <<: *configure
     steps:
     - checkout
-    - setup
-    - checkout_git_submodules
-    - build
-
+    - restore_nix_cache
+    - *release
+    - save_nix_cache
 
 workflows:
   version: 2
-  build:
+  nightly:
+    triggers:
+      - schedule:
+          <<: *filters
+          cron: "0 5 * * *"  # 05:00 UTC
     jobs:
-      - build:
+      - release:
+          <<: *filters
+          context: global
+  push:
+    jobs:
+      - release:
+          <<: *filters
           context: global

@@ -3,7 +3,8 @@ in
 {
   pkgs ? import nixpkgs {
     overlays = import ./overlay.nix;
-  }
+  },
+  robotSshKey
 }:
 with pkgs;
 
@@ -21,4 +22,5 @@ stdenv.mkDerivation {
   GIT_SSL_CAINFO="${cacert}/etc/ssl/certs/ca-bundle.crt";
   NIX_PATH="/nix/var/nix/profiles/per-user/root/channels";
   CARGO_NET_GIT_FETCH_WITH_CLI="true";
+  ROBOT_SSH_KEY = robotSshKey;
 }

@@ -11,8 +11,9 @@ docker run -it --rm \
   -v "nix-19.09-root:/root" \
   -w "/app" nixos/nix:2.3 sh -c "
   ./nix/bootstrap.sh &&
-  nix-shell ./nix/shell.nix \
+  nix-shell ./nix/shell.nix --pure \
     -I ssh-config-file=/tmp/.ssh/config \
+    --argstr robotSshKey $ROBOT_SSH_KEY \
     --option sandbox false \
     --pure -v --show-trace
   "
