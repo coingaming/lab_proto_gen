@@ -10,6 +10,7 @@ let
   rustPkgs = pkgs.rustBuilder.makePackageSet' {
     rustChannel = "stable";
     packageFun = import ./pkg.nix;
+    workspaceSrc = ./..;
   };
 in
   rustPkgs.workspace.lab_proto_gen {}

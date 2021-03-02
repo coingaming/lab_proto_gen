@@ -12,6 +12,7 @@ stdenv.mkDerivation {
   buildInputs = [
     nix
     git
+    rustc
     openssh
     cargo2nix
   ];
