@@ -1,6 +1,8 @@
 [submodule "coingaming_protobuf"]
 	path = coingaming_protobuf
 	url = git@github.com:coingaming/coingaming_protobuf.git
+	branch = "mikhailov-feature/BASS-986"
 [submodule "lab_protobuf"]
 	path = lab_protobuf
 	url = git@github.com:coingaming/lab_protobuf.git
+	branch = "BASS-991"
