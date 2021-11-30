@@ -8,7 +8,7 @@ configure_parameters: &configure_parameters
       default: "x86_64"
     resource_class:
       type: enum
-      enum: ["large", "arm.large"]
+      enum: ["large", "arm.medium"]
       default: "large"
 
 configure_builder: &configure_builder
@@ -73,7 +73,7 @@ workflows:
           <<: *filters
           context: global
           platform: "arm64"
-          resource_class: "arm.large"
+          resource_class: "arm.medium"
   push:
     jobs:
       - release:
@@ -85,4 +85,4 @@ workflows:
           <<: *filters
           context: global
           platform: "arm64"
-          resource_class: "arm.large"
+          resource_class: "arm.medium"
