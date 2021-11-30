@@ -1,26 +1,27 @@
 version: 2.1
 
+executors:
+  x86_64:
+    docker:
+      - image: heathmont/nix:alpine-x86_64-2.3.15
+  arm64:
+    machine:
+      resource_class: arm.large
+      image: ubuntu-2004:202111-01
+
 configure_parameters: &configure_parameters
   parameters:
     platform:
       type: enum
       enum: ["x86_64", "arm64"]
       default: "x86_64"
-    resource_class:
-      type: enum
-      enum: ["large", "arm.large"]
-      default: "large"
 
 configure_builder: &configure_builder
   <<: *configure_parameters
+  executor: << parameters.platform >>
   when:
-    - equal: ["x86_64", << parameters.platform >>]
-      docker:
-        - image: heathmont/nix:alpine-<< parameters.platform >>-2.3.15
-    - equal: ["arm64", << parameters.platform >>]
-      machine:
-        - image: ubuntu-2004:202111-01
-  resource_class: << parameters.resource_class >>
+    equal: ["x86_64", << parameters.platform >>]
+    resource_class: large
 
 filters: &filters
   filters:
@@ -73,21 +74,17 @@ workflows:
           <<: *filters
           context: global
           platform: "x86_64"
-          resource_class: "large"
       - release:
           <<: *filters
           context: global
           platform: "arm64"
-          resource_class: "arm.large"
   push:
     jobs:
       - release:
           <<: *filters
           context: global
           platform: "x86_64"
-          resource_class: "large"
       - release:
           <<: *filters
           context: global
           platform: "arm64"
-          resource_class: "arm.large"
