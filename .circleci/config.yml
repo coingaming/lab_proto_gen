@@ -4,24 +4,18 @@ executors:
   x86_64:
     docker:
       - image: heathmont/nix:alpine-x86_64-2.3.15
+    resource_class: large
   arm64:
     machine:
       resource_class: arm.large
       image: ubuntu-2004:202111-01
 
-configure_parameters: &configure_parameters
+configure: &configure
   parameters:
     platform:
       type: enum
       enum: ["x86_64", "arm64"]
       default: "x86_64"
-
-configure_builder: &configure_builder
-  <<: *configure_parameters
-  executor: << parameters.platform >>
-  when:
-    equal: ["x86_64", << parameters.platform >>]
-    resource_class: large
 
 filters: &filters
   filters:
@@ -29,7 +23,7 @@ filters: &filters
 
 commands:
   restore_nix_cache:
-    <<: *configure_parameters
+    <<: *configure
     steps:
       - restore_cache:
           keys:
@@ -37,7 +31,7 @@ commands:
             - v0-nix-<< parameters.platform >>-<< pipeline.git.base_revision >>
             - v0-nix-<< parameters.platform >>-
   save_nix_cache:
-    <<: *configure_parameters
+    <<: *configure
     steps:
       - save_cache:
           key: v0-nix-<< parameters.platform >>-<< pipeline.git.revision >>
@@ -50,7 +44,8 @@ commands:
 
 jobs:
   release:
-    <<: *configure_builder
+    <<: *configure
+    executor: << parameters.platform >>
     steps:
     - checkout
     - restore_nix_cache:
