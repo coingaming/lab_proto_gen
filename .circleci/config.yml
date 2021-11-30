@@ -14,13 +14,12 @@ configure_parameters: &configure_parameters
 configure_builder: &configure_builder
   <<: *configure_parameters
   when:
-    equal: ["x86_64", << parameters.platform >>]
-    docker:
-      - image: heathmont/nix:alpine-<< parameters.platform >>-2.3.15
-  when:
-    equal: ["arm64", << parameters.platform >>]
-    machine:
-      - image: ubuntu-2004:202111-01
+    - equal: ["x86_64", << parameters.platform >>]
+      docker:
+        - image: heathmont/nix:alpine-<< parameters.platform >>-2.3.15
+    - equal: ["arm64", << parameters.platform >>]
+      machine:
+        - image: ubuntu-2004:202111-01
   resource_class: << parameters.resource_class >>
 
 filters: &filters
