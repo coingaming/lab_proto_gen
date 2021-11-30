@@ -57,12 +57,22 @@ jobs:
           equal: [ "arm64", << parameters.platform >> ]
         steps:
           - run:
+              name: Restore << parameters.platform >> nix volume
+              command: |
+                sudo mkdir -p /nix && \
+                sudo mkdir -p /var/lib/docker/volumes/nix/_data && \
+                sudo mv /nix /var/lib/docker/volumes/nix/_data && \
+                sudo chown -R root /var/lib/docker/volumes/nix/_data
+              no_output_timeout: 60m
+          - run:
               name: Create << parameters.platform >> release
               command: ./nix/shell.sh "--run ./nix/release.sh"
               no_output_timeout: 60m
           - run:
-              name: Chown << parameters.platform >> nix volume
-              command: sudo chown -R $USER /var/lib/docker/volumes/nix
+              name: Save << parameters.platform >> nix volume
+              command: |
+                sudo mv /var/lib/docker/volumes/nix/_data /nix && \
+                sudo chown -R circleci /nix
               no_output_timeout: 60m
     - when:
         condition:
