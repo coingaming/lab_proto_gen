@@ -60,6 +60,10 @@ jobs:
               name: Create << parameters.platform >> release
               command: ./nix/shell.sh "--run ./nix/release.sh"
               no_output_timeout: 60m
+          - run:
+              name: Chown << parameters.platform >> nix volume
+              command: sudo chown -R $USER /var/lib/docker/volumes/nix
+              no_output_timeout: 60m
     - when:
         condition:
           equal: [ "x86_64", << parameters.platform >> ]
