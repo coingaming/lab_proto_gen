@@ -3,6 +3,9 @@
 set -e
 
 PLATFORM=`uname -m`
+if [ "$PLATFORM" = "aarch64" ]; then
+  PLATFORM="arm64"
+fi
 
 echo "starting nixos container..."
 docker run -it --rm \
