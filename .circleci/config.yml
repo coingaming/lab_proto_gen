@@ -37,12 +37,10 @@ commands:
           key: v0-nix-<< parameters.platform >>-<< pipeline.git.revision >>
           paths:
             - /nix
-            - /var/lib/docker/volumes/nix
       - save_cache:
           key: v0-nix-<< parameters.platform >>-
           paths:
             - /nix
-            - /var/lib/docker/volumes/nix
 
 jobs:
   release:
@@ -59,9 +57,9 @@ jobs:
           - run:
               name: Restore << parameters.platform >> nix volume
               command: |
+                ./nix/shell.sh "--run 'echo \"==> creating docker volume\"'" && \
                 sudo mkdir -p /nix && \
-                sudo mkdir -p /var/lib/docker/volumes/nix/_data && \
-                sudo mv /nix /var/lib/docker/volumes/nix/_data && \
+                sudo rsync -a /nix/ /var/lib/docker/volumes/nix/_data/ && \
                 sudo chown -R root /var/lib/docker/volumes/nix/_data
               no_output_timeout: 60m
           - run:
