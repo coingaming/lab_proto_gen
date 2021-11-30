@@ -1,15 +1,21 @@
 version: 2.1
 
-configure: &configure
-  docker:
-  - image: nixos/nix:2.3
-  resource_class: xlarge
+parameters: &parameters
+  parameters:
+    platform:
+      type: enum
+      enum: ["x86_64", "arm64"]
+      default: "x86_64"
+    resource_class:
+      type: enum
+      enum: ["large", "arm.large"]
+      default: "large"
 
-release: &release
-  run:
-    name: Create release
-    command: ./nix/release.sh
-    no_output_timeout: 60m
+configure: &configure
+  <<: *parameters
+  docker:
+  - image: heathmont/nix:alpine-<< parameters.platform >>-2.3.15
+  resource_class: << parameters.resource_class >>
 
 filters: &filters
   filters:
@@ -17,16 +23,18 @@ filters: &filters
 
 commands:
   restore_nix_cache:
+    <<: *parameters
     steps:
       - restore_cache:
           keys:
-            - v0-nix-<< pipeline.git.revision >>
-            - v0-nix-<< pipeline.git.base_revision >>
-            - v0-nix-
+            - v0-nix-<< parameters.platform >>-<< pipeline.git.revision >>
+            - v0-nix-<< parameters.platform >>-<< pipeline.git.base_revision >>
+            - v0-nix-<< parameters.platform >>-
   save_nix_cache:
+    <<: *parameters
     steps:
       - save_cache:
-          key: v0-nix-<< pipeline.git.revision >>
+          key: v0-nix-<< parameters.platform >>-<< pipeline.git.revision >>
           paths:
             - /nix
       - save_cache:
@@ -39,9 +47,14 @@ jobs:
     <<: *configure
     steps:
     - checkout
-    - restore_nix_cache
-    - *release
-    - save_nix_cache
+    - restore_nix_cache:
+        platform: << parameters.platform >>
+    - run:
+        name: Create << parameters.platform >> release
+        command: ./nix/release.sh
+        no_output_timeout: 60m
+    - save_nix_cache:
+        platform: << parameters.platform >>
 
 workflows:
   version: 2
@@ -54,8 +67,22 @@ workflows:
       - release:
           <<: *filters
           context: global
+          platform: "x86_64"
+          resource_class: "large"
+      - release:
+          <<: *filters
+          context: global
+          platform: "arm64"
+          resource_class: "arm.large"
   push:
     jobs:
       - release:
           <<: *filters
           context: global
+          platform: "x86_64"
+          resource_class: "large"
+      - release:
+          <<: *filters
+          context: global
+          platform: "arm64"
+          resource_class: "arm.large"

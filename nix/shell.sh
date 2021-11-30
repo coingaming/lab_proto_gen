@@ -9,7 +9,7 @@ docker run -it --rm \
   -v "$(pwd):/app" \
   -v "nix:/nix" \
   -v "nix-19.09-root:/root" \
-  -w "/app" nixos/nix:2.3 sh -c "
+  -w "/app" nixos/nix:2.3.12 sh -c "
   ./nix/bootstrap.sh &&
   nix-shell ./nix/shell.nix --pure \
     -I ssh-config-file=/tmp/.ssh/config \
