@@ -27,18 +27,18 @@ commands:
     steps:
       - restore_cache:
           keys:
-            - v0-nix-<< parameters.platform >>-<< pipeline.git.revision >>
-            - v0-nix-<< parameters.platform >>-<< pipeline.git.base_revision >>
-            - v0-nix-<< parameters.platform >>-
+            - v1-nix-<< parameters.platform >>-<< pipeline.git.revision >>
+            - v1-nix-<< parameters.platform >>-<< pipeline.git.base_revision >>
+            - v1-nix-<< parameters.platform >>-
   save_nix_cache:
     <<: *configure
     steps:
       - save_cache:
-          key: v0-nix-<< parameters.platform >>-<< pipeline.git.revision >>
+          key: v1-nix-<< parameters.platform >>-<< pipeline.git.revision >>
           paths:
             - /nix
       - save_cache:
-          key: v0-nix-<< parameters.platform >>-
+          key: v1-nix-<< parameters.platform >>-
           paths:
             - /nix
 
@@ -58,9 +58,8 @@ jobs:
               name: Restore << parameters.platform >> nix volume
               command: |
                 ./nix/shell.sh "--run 'echo \"==> creating docker volume\"'" && \
-                sudo mkdir -p /nix && \
-                sudo rsync -a /nix/ /var/lib/docker/volumes/nix/_data/ && \
-                sudo chown -R root /var/lib/docker/volumes/nix/_data
+                sudo mkdir -p /nix/store && \
+                sudo rsync -a /nix/store/ /var/lib/docker/volumes/nix/_data/store/
               no_output_timeout: 60m
           - run:
               name: Create << parameters.platform >> release
@@ -69,8 +68,7 @@ jobs:
           - run:
               name: Save << parameters.platform >> nix volume
               command: |
-                sudo mv /var/lib/docker/volumes/nix/_data /nix && \
-                sudo chown -R circleci /nix
+                sudo rsync -a /var/lib/docker/volumes/nix/_data/store/ /nix/store/
               no_output_timeout: 60m
     - when:
         condition:
