@@ -48,20 +48,24 @@ jobs:
     executor: << parameters.platform >>
     steps:
     - checkout
+    - restore_nix_cache:
+        platform: << parameters.platform >>
     - when:
         condition:
           equal: [ "arm64", << parameters.platform >> ]
         steps:
           - run:
-              name: Install << parameters.platform >> nix
-              command: ./nix/ubuntu-install-nix.sh
+              name: Create << parameters.platform >> release
+              command: ./nix/shell.sh "--run ./nix/release.sh"
               no_output_timeout: 60m
-    - restore_nix_cache:
-        platform: << parameters.platform >>
-    - run:
-        name: Create << parameters.platform >> release
-        command: ./nix/release.sh
-        no_output_timeout: 60m
+    - when:
+        condition:
+          equal: [ "x86_64", << parameters.platform >> ]
+        steps:
+          - run:
+              name: Create << parameters.platform >> release
+              command: ./nix/release.sh
+              no_output_timeout: 60m
     - save_nix_cache:
         platform: << parameters.platform >>
 
