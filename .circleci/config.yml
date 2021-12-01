@@ -27,19 +27,19 @@ commands:
     steps:
       - restore_cache:
           keys:
-            - v3-nix-<< parameters.platform >>-<< pipeline.git.revision >>
-            - v3-nix-<< parameters.platform >>-<< pipeline.git.base_revision >>
-            - v3-nix-<< parameters.platform >>-
+            - v4-nix-<< parameters.platform >>-<< pipeline.git.revision >>
+            - v4-nix-<< parameters.platform >>-<< pipeline.git.base_revision >>
+            - v4-nix-<< parameters.platform >>-
   save_nix_cache:
     <<: *configure
     steps:
       - save_cache:
-          key: v3-nix-<< parameters.platform >>-<< pipeline.git.revision >>
+          key: v4-nix-<< parameters.platform >>-<< pipeline.git.revision >>
           paths:
             - /nix
             - ~/project/nix_ci_cache
       - save_cache:
-          key: v3-nix-<< parameters.platform >>-
+          key: v4-nix-<< parameters.platform >>-
           paths:
             - /nix
             - ~/project/nix_ci_cache
