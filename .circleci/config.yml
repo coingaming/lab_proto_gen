@@ -63,8 +63,12 @@ jobs:
                   -v "$(pwd):/app" \
                   -v "nix:/nix" \
                   -v "nix-19.09-root:/root" \
-                  -w "/app" "heathmont/nix:alpine-arm64-2.3.15" sh -c \
-                  "nix copy --no-check-sigs --from file:///app/nix_ci_cache --all"
+                  -w "/app" "heathmont/nix:alpine-arm64-2.3.15" sh -c "
+                  echo 'http2 = false' >> /etc/nix/nix.conf &&
+                  echo 'sandbox = false' >> /etc/nix/nix.conf &&
+                  echo 'filter-syscalls = false' >> /etc/nix/nix.conf &&
+                  nix copy --no-check-sigs --from file:///app/nix_ci_cache --all
+                  "
               no_output_timeout: 60m
           - run:
               name: Create << parameters.platform >> release
@@ -77,8 +81,12 @@ jobs:
                   -v "$(pwd):/app" \
                   -v "nix:/nix" \
                   -v "nix-19.09-root:/root" \
-                  -w "/app" "heathmont/nix:alpine-arm64-2.3.15" sh -c \
-                  "nix copy --no-check-sigs --to file:///app/nix_ci_cache --all"
+                  -w "/app" "heathmont/nix:alpine-arm64-2.3.15" sh -c "
+                  echo 'http2 = false' >> /etc/nix/nix.conf &&
+                  echo 'sandbox = false' >> /etc/nix/nix.conf &&
+                  echo 'filter-syscalls = false' >> /etc/nix/nix.conf &&
+                  nix copy --no-check-sigs --to file:///app/nix_ci_cache --all
+                  "
               no_output_timeout: 60m
     - when:
         condition:
