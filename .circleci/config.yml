@@ -72,7 +72,6 @@ jobs:
                   echo 'http2 = false' >> /etc/nix/nix.conf &&
                   echo 'sandbox = false' >> /etc/nix/nix.conf &&
                   echo 'filter-syscalls = false' >> /etc/nix/nix.conf &&
-                  nix store sign -k /app/nix_store_prv_key --all &&
                   nix copy --to file:///app/nix_ci_cache --all
                   "
               no_output_timeout: 60m
