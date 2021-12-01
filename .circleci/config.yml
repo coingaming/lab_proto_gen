@@ -27,20 +27,22 @@ commands:
     steps:
       - restore_cache:
           keys:
-            - v1-nix-<< parameters.platform >>-<< pipeline.git.revision >>
-            - v1-nix-<< parameters.platform >>-<< pipeline.git.base_revision >>
-            - v1-nix-<< parameters.platform >>-
+            - v2-nix-<< parameters.platform >>-<< pipeline.git.revision >>
+            - v2-nix-<< parameters.platform >>-<< pipeline.git.base_revision >>
+            - v2-nix-<< parameters.platform >>-
   save_nix_cache:
     <<: *configure
     steps:
       - save_cache:
-          key: v1-nix-<< parameters.platform >>-<< pipeline.git.revision >>
+          key: v2-nix-<< parameters.platform >>-<< pipeline.git.revision >>
           paths:
             - /nix
+            - ~/project/nix_ci_cache
       - save_cache:
-          key: v1-nix-<< parameters.platform >>-
+          key: v2-nix-<< parameters.platform >>-
           paths:
             - /nix
+            - ~/project/nix_ci_cache
 
 jobs:
   release:
@@ -55,20 +57,28 @@ jobs:
           equal: [ "arm64", << parameters.platform >> ]
         steps:
           - run:
-              name: Restore << parameters.platform >> nix volume
+              name: Restore << parameters.platform >> nix_ci_cache
               command: |
-                ./nix/shell.sh "--run 'echo \"==> creating docker volume\"'" && \
-                sudo mkdir -p /nix/store && \
-                sudo rsync -a /nix/store/ /var/lib/docker/volumes/nix/_data/store/
+                docker run -it --rm \
+                  -v "$(pwd):/app" \
+                  -v "nix:/nix" \
+                  -v "nix-19.09-root:/root" \
+                  -w "/app" "heathmont/nix:alpine-arm64-2.3.15" sh -c \
+                  "nix copy --no-check-sigs --from file:///app/nix_ci_cache --all"
               no_output_timeout: 60m
           - run:
               name: Create << parameters.platform >> release
               command: ./nix/shell.sh "--run ./nix/release.sh"
               no_output_timeout: 60m
           - run:
-              name: Save << parameters.platform >> nix volume
+              name: Save << parameters.platform >> nix_ci_cache
               command: |
-                sudo rsync -a /var/lib/docker/volumes/nix/_data/store/ /nix/store/
+                docker run -it --rm \
+                  -v "$(pwd):/app" \
+                  -v "nix:/nix" \
+                  -v "nix-19.09-root:/root" \
+                  -w "/app" "heathmont/nix:alpine-arm64-2.3.15" sh -c \
+                  "nix copy --no-check-sigs --to file:///app/nix_ci_cache --all"
               no_output_timeout: 60m
     - when:
         condition:
