@@ -63,6 +63,7 @@ jobs:
           - run:
               name: Save << parameters.platform >> nix_ci_cache
               command: |
+                echo "$NIX_STORE_PRV_KEY" > ./nix_store_prv_key && \
                 docker run -it --rm \
                   -v "$(pwd):/app" \
                   -v "nix:/nix" \
@@ -71,7 +72,8 @@ jobs:
                   echo 'http2 = false' >> /etc/nix/nix.conf &&
                   echo 'sandbox = false' >> /etc/nix/nix.conf &&
                   echo 'filter-syscalls = false' >> /etc/nix/nix.conf &&
-                  nix copy --no-check-sigs --to file:///app/nix_ci_cache --all
+                  nix store sign -k /app/nix_store_prv_key --all &&
+                  nix copy --to file:///app/nix_ci_cache --all
                   "
               no_output_timeout: 60m
     - when:
