@@ -63,15 +63,13 @@ jobs:
           - run:
               name: Save << parameters.platform >> nix_ci_cache
               command: |
-                echo "$NIX_STORE_PRV_KEY" > ./nix_store_prv_key && \
                 docker run -it --rm \
                   -v "$(pwd):/app" \
                   -v "nix:/nix" \
                   -v "nix-19.09-root:/root" \
                   -w "/app" "heathmont/nix:alpine-arm64-2.3.15" sh -c "
                   echo 'http2 = false' >> /etc/nix/nix.conf &&
-                  echo 'sandbox = false' >> /etc/nix/nix.conf &&
-                  echo 'filter-syscalls = false' >> /etc/nix/nix.conf &&
+                  echo \"$NIX_STORE_PRV_KEY\" > ./nix_store_prv_key &&
                   nix copy --to file:///app/nix_ci_cache --all
                   "
               no_output_timeout: 60m
