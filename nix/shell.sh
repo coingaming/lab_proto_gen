@@ -8,7 +8,10 @@ if [ "$PLATFORM" = "aarch64" ]; then
 fi
 
 NIX_CONF="http2 = false
-extra-substituters = https://cache.nixos.org https://hydra.iohk.io https://all-hies.cachix.org file:///app/nix_ci_cache
+sandbox = false
+filter-syscalls = false
+substituters = https://cache.nixos.org https://hydra.iohk.io https://all-hies.cachix.org file:///app/nix_ci_cache
+trusted-substituters = file:///app/nix_ci_cache
 trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= all-hies.cachix.org-1:JjrzAOEUsD9ZMt8fdFbzo3jNAyEWlPAwdVuHw4RD43k=
 "
 
