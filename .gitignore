@@ -1,2 +1,4 @@
 /target
 /result
+/nix_ci_cache
+/nix_store_prv_key

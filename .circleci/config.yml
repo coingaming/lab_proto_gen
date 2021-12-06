@@ -1,15 +1,21 @@
 version: 2.1
 
-configure: &configure
-  docker:
-  - image: nixos/nix:2.3
-  resource_class: xlarge
+executors:
+  x86_64:
+    docker:
+      - image: heathmont/nix:alpine-x86_64-2.3.15
+    resource_class: large
+  arm64:
+    machine:
+      resource_class: arm.large
+      image: ubuntu-2004:202111-01
 
-release: &release
-  run:
-    name: Create release
-    command: ./nix/release.sh
-    no_output_timeout: 60m
+configure: &configure
+  parameters:
+    platform:
+      type: enum
+      enum: ["x86_64", "arm64"]
+      default: "x86_64"
 
 filters: &filters
   filters:
@@ -17,31 +23,66 @@ filters: &filters
 
 commands:
   restore_nix_cache:
+    <<: *configure
     steps:
       - restore_cache:
           keys:
-            - v0-nix-<< pipeline.git.revision >>
-            - v0-nix-<< pipeline.git.base_revision >>
-            - v0-nix-
+            - v4-nix-<< parameters.platform >>-<< pipeline.git.revision >>
+            - v4-nix-<< parameters.platform >>-<< pipeline.git.base_revision >>
+            - v4-nix-<< parameters.platform >>-
   save_nix_cache:
+    <<: *configure
     steps:
       - save_cache:
-          key: v0-nix-<< pipeline.git.revision >>
+          key: v4-nix-<< parameters.platform >>-<< pipeline.git.revision >>
           paths:
             - /nix
+            - ~/project/nix_ci_cache
       - save_cache:
-          key: v0-nix-
+          key: v4-nix-<< parameters.platform >>-
           paths:
             - /nix
+            - ~/project/nix_ci_cache
 
 jobs:
   release:
     <<: *configure
+    executor: << parameters.platform >>
     steps:
     - checkout
-    - restore_nix_cache
-    - *release
-    - save_nix_cache
+    - restore_nix_cache:
+        platform: << parameters.platform >>
+    - when:
+        condition:
+          equal: [ "arm64", << parameters.platform >> ]
+        steps:
+          - run:
+              name: Create << parameters.platform >> release
+              command: ./nix/shell.sh "--run ./nix/release.sh"
+              no_output_timeout: 60m
+          - run:
+              name: Save << parameters.platform >> nix_ci_cache
+              command: |
+                docker run -it --rm \
+                  -v "$(pwd):/app" \
+                  -v "nix:/nix" \
+                  -v "nix-19.09-root:/root" \
+                  -w "/app" "heathmont/nix:alpine-arm64-2.3.15" sh -c "
+                  echo 'http2 = false' >> /etc/nix/nix.conf &&
+                  echo \"$NIX_STORE_PRV_KEY\" > ./nix_store_prv_key &&
+                  nix copy --to file:///app/nix_ci_cache --all
+                  "
+              no_output_timeout: 60m
+    - when:
+        condition:
+          equal: [ "x86_64", << parameters.platform >> ]
+        steps:
+          - run:
+              name: Create << parameters.platform >> release
+              command: ./nix/release.sh
+              no_output_timeout: 60m
+    - save_nix_cache:
+        platform: << parameters.platform >>
 
 workflows:
   version: 2
@@ -54,8 +95,18 @@ workflows:
       - release:
           <<: *filters
           context: global
+          platform: "x86_64"
+      - release:
+          <<: *filters
+          context: global
+          platform: "arm64"
   push:
     jobs:
       - release:
           <<: *filters
           context: global
+          platform: "x86_64"
+      - release:
+          <<: *filters
+          context: global
+          platform: "arm64"
