@@ -266,7 +266,7 @@ dependencies = [
 [[package]]
 name = "protobuf-gen"
 version = "0.1.0"
-source = "git+https://github.com/coingaming/protobuf-gen?branch=fix-crash-and-add-leading-comment-for-package#a1068602c54adda987ff31ab20b15b39c79ee30f"
+source = "git+https://github.com/coingaming/protobuf-gen#38eed1ebbe4b8e98ca731973efdc9444ad1f5e63"
 dependencies = [
  "prost",
  "prost-types",
