@@ -58,13 +58,6 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             )
             .to_string();
 
-            if act_type == "observation" {
-                imports.push(PathBuf::from(format!(
-                    "{}/substance/{}/effect/{}.proto",
-                    proto_dir, substance, act
-                )));
-            }
-
             let input_type = format!("{}Request", act_pascal.clone());
 
             let message = prost_types::DescriptorProto {
@@ -88,11 +81,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             messages.push(message);
 
             let output_type = if act_type == "observation" {
-                format!(
-                    ".Lab.Substance.{}.Effect.{}.Request",
-                    substance_pascal, act_pascal
-                )
-                .to_string()
+                ".Lab.Global.SharedObservation.Response".to_string()
             } else if act_type == "effect" {
                 ".Lab.Global.SharedEffect.Response".to_string()
             } else {
@@ -107,7 +96,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
                 name: Some(act_pascal.clone()),
                 input_type: Some(input_type),
                 output_type: Some(output_type),
-                server_streaming: Some(act_type == "observation"),
+                server_streaming: false,
                 ..Default::default()
             });
         }
@@ -116,6 +105,8 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
 
         if act_type == "effect" {
             imports.push(PathBuf::from("lab_protobuf/global/shared_effect.proto"));
+        } else if act_type == "observation" {
+            imports.push(PathBuf::from("lab_protobuf/global/shared_observation.proto"));
         };
 
         services.push(prost_types::ServiceDescriptorProto {
