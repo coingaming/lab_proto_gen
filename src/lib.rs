@@ -31,19 +31,6 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
 
         let substance_pascal = substance.to_pascal_case();
 
-        let proto_dir = dir
-            .parent()
-            .unwrap()
-            .parent()
-            .unwrap()
-            .parent()
-            .unwrap()
-            .file_name()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string();
-
         let mut imports: Vec<_> = files.collect();
         let mut services = Vec::with_capacity(1);
         let mut messages = Vec::with_capacity(imports.len());
@@ -96,7 +83,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
                 name: Some(act_pascal.clone()),
                 input_type: Some(input_type),
                 output_type: Some(output_type),
-                server_streaming: false,
+                server_streaming: Some(false),
                 ..Default::default()
             });
         }
