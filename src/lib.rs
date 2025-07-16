@@ -130,7 +130,12 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
         };
 
         let mut file = File::create(format!("{}.proto", dir.to_str().unwrap()))?;
-        file.write_all(fd.to_protobuf(fd.to_owned()).as_bytes())?;
+        
+        use prost::Message; // Ensure this is imported
+        // Serialize fd as bytes and write to file
+        let mut buf = Vec::new();
+        fd.encode(&mut buf).expect("Failed to encode FileDescriptorProto");
+        file.write_all(&buf)?;
     }
 
     Ok(())
