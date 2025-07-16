@@ -1,7 +1,7 @@
 use glob::glob;
 use inflector::Inflector;
 use itertools::Itertools;
-use protobuf_gen::ProtobufString;
+use prost::Message;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::PathBuf;
@@ -131,7 +131,6 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
 
         let mut file = File::create(format!("{}.proto", dir.to_str().unwrap()))?;
         
-        use prost::Message; // Ensure this is imported
         // Serialize fd as bytes and write to file
         let mut buf = Vec::new();
         fd.encode(&mut buf).expect("Failed to encode FileDescriptorProto");
