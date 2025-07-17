@@ -1,7 +1,6 @@
 use glob::glob;
 use inflector::Inflector;
 use itertools::Itertools;
-use protobuf_gen::ProtobufString;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::PathBuf;
@@ -130,7 +129,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
         };
 
         let mut file = File::create(format!("{}.proto", dir.to_str().unwrap()))?;
-        file.write_all(protobuf_gen::ProtobufString::to_protobuf(&fd.clone()).as_bytes())?; 
+        file.write_all(protobuf_gen::ProtobufString::to_protobuf(&fd.owned()).as_bytes())?; 
     }
 
     Ok(())
