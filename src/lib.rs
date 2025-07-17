@@ -130,7 +130,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
         };
 
         let mut file = File::create(format!("{}.proto", dir.to_str().unwrap()))?;
-        file.write_all(protobuf_gen::ProtobufString::to_protobuf(fd.clone()).as_bytes())?; 
+        file.write_all(protobuf_gen::ProtobufString::to_protobuf(&fd.clone()).as_bytes())?; 
     }
 
     Ok(())
